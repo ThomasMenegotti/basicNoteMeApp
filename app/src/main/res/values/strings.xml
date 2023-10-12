@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Note Me</string>
+    <string name="title_activity_add_note">AddNote</string>
+</resources>

@@ -48,7 +48,7 @@
                     android:textColor="@color/black"
                     android:textSize="24sp"
                     android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/deleteNote"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -72,6 +72,15 @@
                     android:textColor="#FFA1A1A1"
                     app:layout_constraintBaseline_toBaselineOf="@+id/nTime"
                     app:layout_constraintStart_toEndOf="@+id/nTime" />
+
+                <ImageButton
+                    android:id="@+id/deleteNote"
+                    android:layout_width="38dp"
+                    android:layout_height="33dp"
+                    app:layout_constraintBottom_toTopOf="@+id/nDesc"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/baseline_delete_24" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,14 +25,17 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     private LayoutInflater inflater;
     private List<Note> notes;
 
+    private OnNoteDeleteListener deleteListener;
+
     /**
      * Constructor for the Adapter.
      * @param context Context of the app
      * @param notes List of notes to display
      */
-    Adapter(Context context, List<Note> notes) {
+    Adapter(Context context, List<Note> notes, OnNoteDeleteListener deleteListener) {
         this.inflater = LayoutInflater.from(context);
         this.notes = notes;
+        this.deleteListener= deleteListener;
     }
 
     @NonNull
@@ -55,6 +60,13 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         holder.nDesc.setText(description);
         holder.nDate.setText(date);
         holder.nTime.setText(time);
+        holder.dNote.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                Note noteToDelete = notes.get(position);
+                deleteListener.onNoteDelete(noteToDelete);
+            }
+        });
 
         // Set background color based on the note's color value
         if (colorOfNote.equalsIgnoreCase("orange")) {
@@ -81,6 +93,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
      */
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView nTitle, nDesc, nDate, nTime;
+        ImageButton dNote;
         ConstraintLayout nColor;
 
         public ViewHolder(@NonNull View itemView) {
@@ -92,6 +105,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
             nDate = itemView.findViewById(R.id.nDate);
             nTime = itemView.findViewById(R.id.nTime);
             nColor = itemView.findViewById(R.id.boxToFill);
+            dNote= itemView.findViewById(R.id.deleteNote);
         }
     }
 
@@ -102,5 +116,9 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     public void updateNotes(List<Note> newNotes) {
         notes = newNotes;
         notifyDataSetChanged();
+    }
+
+    public interface OnNoteDeleteListener{
+        void onNoteDelete(Note note);
     }
 }

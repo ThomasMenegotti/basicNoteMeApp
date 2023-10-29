@@ -17,8 +17,8 @@ public class NoteDatabase extends SQLiteOpenHelper {
 
     // Constants for database version, name and table name
     private static final int DATABASE_VERSION = 2;
-    private static final String DATABASE_NAME = "notedb4";
-    private static final String DATABASE_TABLE = "notestable3";
+    private static final String DATABASE_NAME = "notedb5";
+    private static final String DATABASE_TABLE = "notestable4";
 
     // Column names for the database table
     private static final String KEY_ID = "id";
@@ -36,7 +36,7 @@ public class NoteDatabase extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // SQL query to create a table with columns id, title, content, date, time, and color
-        String query = "CREATE TABLE " + DATABASE_TABLE + "(" + KEY_ID + " INT PRIMARY KEY," + KEY_TITLE + " TEXT," + KEY_CONTENT + " TEXT," + KEY_DATE + " TEXT," + KEY_TIME + " TEXT," + KEY_COLOR + " TEXT" + ")";
+        String query = "CREATE TABLE " + DATABASE_TABLE + "(" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + KEY_TITLE + " TEXT," + KEY_CONTENT + " TEXT," + KEY_DATE + " TEXT," + KEY_TIME + " TEXT," + KEY_COLOR + " TEXT" + ")";
         db.execSQL(query);
     }
 
@@ -107,5 +107,12 @@ public class NoteDatabase extends SQLiteOpenHelper {
 
         // Return the list of notes
         return allNotes;
+    }
+
+    public void deleteNote(Note note){
+        SQLiteDatabase db = this.getWritableDatabase();
+        int deletedRows = db.delete(DATABASE_TABLE, KEY_ID + "=?", new String[]{String.valueOf(note.getID())});
+        Log.d("NoteDatabase", "Attempting to delete note with ID: " +note.getID() + ". Rows deleted: " + deletedRows);
+        db.close();
     }
 }

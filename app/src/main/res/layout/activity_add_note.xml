@@ -83,4 +83,24 @@
         app:layout_constraintTop_toBottomOf="@+id/noteTitle"
         app:layout_constraintVertical_bias="1.0" />
 
+    <Button
+        android:id="@+id/uploadImg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="75dp"
+        android:layout_marginTop="15dp"
+        android:text="Upload Image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/chipGroup" />
+
+    <Button
+        android:id="@+id/captureImg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="15dp"
+        android:text="Capture Image"
+        app:layout_constraintStart_toEndOf="@+id/uploadImg"
+        app:layout_constraintTop_toBottomOf="@+id/chipGroup" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

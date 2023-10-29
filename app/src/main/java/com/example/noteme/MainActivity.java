@@ -16,7 +16,7 @@ import android.widget.SearchView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Adapter.OnNoteDeleteListener {
 
     // UI components
     Toolbar toolbar;
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         // Setting up RecyclerView
         recyclerView = findViewById(R.id.listOfNotes);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new Adapter(this, notes);
+        adapter = new Adapter(this, notes,this);
         recyclerView.setAdapter(adapter);
 
         // Setting listener for searchView to filter notes
@@ -83,6 +83,15 @@ public class MainActivity extends AppCompatActivity {
             startActivity(i);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onNoteDelete(Note note){
+        NoteDatabase db = new NoteDatabase(this);
+        db.deleteNote(note);
+
+        notes=db.getNotes();
+        adapter.updateNotes(notes);
     }
 
     // Method to filter notes based on a query

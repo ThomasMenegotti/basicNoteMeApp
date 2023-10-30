@@ -11,16 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class provides database functionalities like creating, reading, and updating the notes.
+ * NoteDatabase is responsible for providing database functionalities for managing notes.
+ * This includes operations like creating, reading, updating, and deleting notes.
  */
 public class NoteDatabase extends SQLiteOpenHelper {
 
-    // Constants for database version, name and table name
+    // Constants defining database attributes such as its version, name and table name
     private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "notedb5";
     private static final String DATABASE_TABLE = "notestable4";
 
-    // Column names for the database table
+    // Column names for the notes table
     private static final String KEY_ID = "id";
     private static final String KEY_CONTENT = "content";
     private static final String KEY_TITLE = "title";
@@ -28,31 +29,49 @@ public class NoteDatabase extends SQLiteOpenHelper {
     private static final String KEY_TIME = "time";
     private static final String KEY_COLOR = "color";
 
-    // Constructor for the NoteDatabase
+    /**
+     * Constructor to initialize the database helper with context.
+     * @param context Context of the application
+     */
     NoteDatabase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    /**
+     * Called when the database is being created for the first time.
+     * Defines the structure of the table(s).
+     * @param db The database instance
+     */
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // SQL query to create a table with columns id, title, content, date, time, and color
-        String query = "CREATE TABLE " + DATABASE_TABLE + "(" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + KEY_TITLE + " TEXT," + KEY_CONTENT + " TEXT," + KEY_DATE + " TEXT," + KEY_TIME + " TEXT," + KEY_COLOR + " TEXT" + ")";
+        String query = "CREATE TABLE " + DATABASE_TABLE + "("
+                + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + KEY_TITLE + " TEXT,"
+                + KEY_CONTENT + " TEXT,"
+                + KEY_DATE + " TEXT,"
+                + KEY_TIME + " TEXT,"
+                + KEY_COLOR + " TEXT" + ")";
         db.execSQL(query);
     }
 
+    /**
+     * Called when the database needs to be upgraded, for example, due to schema changes.
+     * @param db The database instance
+     * @param oldVersion The old database version
+     * @param newVersion The new database version
+     */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // If the existing version of the database is up-to-date, no need to proceed
-        if (oldVersion >= newVersion) {
-            return;
-        }
-
-        // If not, drop the older table and recreate
+        if (oldVersion >= newVersion) return;
         db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
         onCreate(db);
     }
 
-    // Function to add a new note to the database
+    /**
+     * Adds a new note to the database.
+     * @param note The note to be added
+     * @return ID of the note after insertion
+     */
     public long addNote(Note note) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues c = new ContentValues();
@@ -68,29 +87,28 @@ public class NoteDatabase extends SQLiteOpenHelper {
         return ID;
     }
 
-    // Function to retrieve a single note based on its ID
+    /**
+     * Fetches a note based on its ID.
+     * @param id ID of the note to retrieve
+     * @return The corresponding note
+     */
     public Note getNote(long id) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(DATABASE_TABLE, new String[]{KEY_ID, KEY_TITLE, KEY_CONTENT, KEY_DATE, KEY_TIME, KEY_COLOR}, KEY_ID + "=?", new String[]{String.valueOf(id)}, null, null, null);
-
-        if (cursor != null) {
-            cursor.moveToFirst();
-        }
-
-        // Construct and return a Note object from the cursor data
+        if (cursor != null) cursor.moveToFirst();
         return new Note(cursor.getLong(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5));
     }
 
-    // Function to retrieve all notes from the database
+    /**
+     * Fetches all the notes present in the database.
+     * @return List of all notes
+     */
     public List<Note> getNotes() {
         SQLiteDatabase db = this.getReadableDatabase();
         List<Note> allNotes = new ArrayList<>();
-
-        // SQL query to fetch all records from the table
         String query = "SELECT * FROM " + DATABASE_TABLE;
         Cursor cursor = db.rawQuery(query, null);
 
-        // Loop through the cursor and populate the list
         if (cursor.moveToFirst()) {
             do {
                 Note note = new Note();
@@ -100,16 +118,17 @@ public class NoteDatabase extends SQLiteOpenHelper {
                 note.setDate(cursor.getString(3));
                 note.setTime(cursor.getString(4));
                 note.setColor(cursor.getString(5));
-
                 allNotes.add(note);
             } while (cursor.moveToNext());
         }
-
-        // Return the list of notes
         return allNotes;
     }
 
-    public void deleteNote(Note note){
+    /**
+     * Deletes a specific note from the database.
+     * @param note The note to be deleted
+     */
+    public void deleteNote(Note note) {
         SQLiteDatabase db = this.getWritableDatabase();
         int deletedRows = db.delete(DATABASE_TABLE, KEY_ID + "=?", new String[]{String.valueOf(note.getID())});
         Log.d("NoteDatabase", "Attempting to delete note with ID: " +note.getID() + ". Rows deleted: " + deletedRows);

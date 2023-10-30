@@ -103,4 +103,15 @@
         app:layout_constraintStart_toEndOf="@+id/uploadImg"
         app:layout_constraintTop_toBottomOf="@+id/chipGroup" />
 
+    <ImageView
+        android:id="@+id/noteImage"
+        android:layout_width="wrap_content"
+        android:layout_height="175dp"
+        android:contentDescription="note image"
+        android:scaleType="centerInside"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/uploadImg" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

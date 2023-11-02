@@ -1,3 +1,4 @@
+//TODO: FIGURE OUT HOW IN THE FLYING FUCK I AM TO STORE IMAGES IN AN SQLITE DATABASE, PEOPLE SAYING TO STORE USING BYTE ARRAY (HARD)
 package com.example.noteme;
 
 import android.content.ContentValues;
@@ -18,8 +19,8 @@ public class NoteDatabase extends SQLiteOpenHelper {
 
     // Constants defining database attributes such as its version, name and table name
     private static final int DATABASE_VERSION = 2;
-    private static final String DATABASE_NAME = "notedb5";
-    private static final String DATABASE_TABLE = "notestable4";
+    private static final String DATABASE_NAME = "notedb6";
+    private static final String DATABASE_TABLE = "notestable5";
 
     // Column names for the notes table
     private static final String KEY_ID = "id";
@@ -28,6 +29,8 @@ public class NoteDatabase extends SQLiteOpenHelper {
     private static final String KEY_DATE = "date";
     private static final String KEY_TIME = "time";
     private static final String KEY_COLOR = "color";
+    private static final String KEY_IMAGE = "image";
+
 
     /**
      * Constructor to initialize the database helper with context.
@@ -50,7 +53,8 @@ public class NoteDatabase extends SQLiteOpenHelper {
                 + KEY_CONTENT + " TEXT,"
                 + KEY_DATE + " TEXT,"
                 + KEY_TIME + " TEXT,"
-                + KEY_COLOR + " TEXT" + ")";
+                + KEY_COLOR + " TEXT,"
+                + KEY_IMAGE +" BLOB" +")";
         db.execSQL(query);
     }
 
@@ -80,6 +84,7 @@ public class NoteDatabase extends SQLiteOpenHelper {
         c.put(KEY_TIME, note.getTime());
         c.put(KEY_DATE, note.getDate());
         c.put(KEY_COLOR, note.getColor());
+        c.put(KEY_IMAGE, note.getImageByteArray());
 
         long ID = db.insert(DATABASE_TABLE, null, c);
         Log.d("Inserted", "ID ->" + ID);
@@ -96,7 +101,7 @@ public class NoteDatabase extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(DATABASE_TABLE, new String[]{KEY_ID, KEY_TITLE, KEY_CONTENT, KEY_DATE, KEY_TIME, KEY_COLOR}, KEY_ID + "=?", new String[]{String.valueOf(id)}, null, null, null);
         if (cursor != null) cursor.moveToFirst();
-        return new Note(cursor.getLong(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5));
+        return new Note(cursor.getLong(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getBlob(6));
     }
 
     /**
@@ -118,6 +123,7 @@ public class NoteDatabase extends SQLiteOpenHelper {
                 note.setDate(cursor.getString(3));
                 note.setTime(cursor.getString(4));
                 note.setColor(cursor.getString(5));
+                note.setImageByteArray(cursor.getBlob(6));
                 allNotes.add(note);
             } while (cursor.moveToNext());
         }
@@ -133,5 +139,19 @@ public class NoteDatabase extends SQLiteOpenHelper {
         int deletedRows = db.delete(DATABASE_TABLE, KEY_ID + "=?", new String[]{String.valueOf(note.getID())});
         Log.d("NoteDatabase", "Attempting to delete note with ID: " +note.getID() + ". Rows deleted: " + deletedRows);
         db.close();
+    }
+
+    public int updateNote(Note note){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_TITLE, note.getTitle());
+        values.put(KEY_CONTENT, note.getContent());
+        values.put(KEY_TIME, note.getTime());
+        values.put(KEY_DATE, note.getDate());
+        values.put(KEY_COLOR, note.getColor());
+        values.put(KEY_IMAGE, note.getImageByteArray());
+
+        // Updating row
+        return db.update(DATABASE_TABLE, values, KEY_ID + " = ?", new String[]{String.valueOf(note.getID())});
     }
 }

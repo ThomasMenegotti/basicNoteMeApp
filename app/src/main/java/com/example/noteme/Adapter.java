@@ -2,6 +2,7 @@ package com.example.noteme;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
     // Callback listener for delete operation
     private OnNoteDeleteListener deleteListener;
+    private OnNoteEditLister editListener;
 
     /**
      * Constructor for the Adapter.
@@ -35,10 +37,11 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
      * @param notes          List of notes to display
      * @param deleteListener Listener for delete note actions
      */
-    Adapter(Context context, List<Note> notes, OnNoteDeleteListener deleteListener) {
+    Adapter(Context context, List<Note> notes, OnNoteDeleteListener deleteListener, OnNoteEditLister editListener) {
         this.inflater = LayoutInflater.from(context);
         this.notes = notes;
         this.deleteListener = deleteListener;
+        this.editListener=editListener;
     }
 
     @NonNull
@@ -70,6 +73,13 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
             public void onClick(View v) {
                 Note noteToDelete = notes.get(position);
                 deleteListener.onNoteDelete(noteToDelete);
+            }
+        });
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Note noteToEdit = notes.get(position);
+                editListener.onNoteEdit(noteToEdit);
             }
         });
 
@@ -130,6 +140,9 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
      */
     public interface OnNoteDeleteListener {
         void onNoteDelete(Note note);
+    }
+    public interface OnNoteEditLister{
+        void onNoteEdit(Note note);
     }
 }
 

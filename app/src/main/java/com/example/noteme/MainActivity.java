@@ -1,3 +1,4 @@
+//TODO: ALLOW FOR EDITING FUNCTIONALITY WHEN AT HOME SCREEN (GOD SPEED BROTHER)
 package com.example.noteme;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,7 +21,7 @@ import java.util.List;
  * MainActivity is the primary screen of the app where users can see a list of their notes.
  * This activity provides functionalities to search notes and navigate to the AddNote screen.
  */
-public class MainActivity extends AppCompatActivity implements Adapter.OnNoteDeleteListener {
+public class MainActivity extends AppCompatActivity implements Adapter.OnNoteDeleteListener, Adapter.OnNoteEditLister {
 
     // UI components
     private Toolbar toolbar;         // Top toolbar
@@ -50,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements Adapter.OnNoteDel
         // Configuring the RecyclerView
         recyclerView = findViewById(R.id.listOfNotes);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new Adapter(this, notes, this); // 'this' is passed for the delete note callback
+        adapter = new Adapter(this, notes, this, this::onNoteEdit); // 'this' is passed for the delete note callback
         recyclerView.setAdapter(adapter);
 
         // Setting a listener on the search bar to filter notes
@@ -68,6 +69,9 @@ public class MainActivity extends AppCompatActivity implements Adapter.OnNoteDel
                 return true;
             }
         });
+
+
+
     }
 
     @Override
@@ -113,6 +117,13 @@ public class MainActivity extends AppCompatActivity implements Adapter.OnNoteDel
 
         // Update the RecyclerView with the filtered notes
         adapter.updateNotes(filteredNotes);
+    }
+
+    @Override
+    public void onNoteEdit(Note note){
+        Intent editIntent = new Intent(this, AddNote.class);
+        editIntent.putExtra("editNote", note);
+        startActivity(editIntent);
     }
 }
 

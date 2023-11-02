@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -27,6 +29,8 @@ import android.widget.Toast;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Calendar;
 
 /**
@@ -38,9 +42,11 @@ public class AddNote extends AppCompatActivity {
 
     // UI components
     private Toolbar toolbar;
+    private Note editNote;
     private EditText noteTitle, noteDescription;
     private Calendar c;
     private ChipGroup chipGroup;
+    private ImageView noteImage;
     private Chip colorYellow, colorOrange, colorSkyBlue;
     private Button capImg, uplImg;
 
@@ -90,6 +96,7 @@ public class AddNote extends AppCompatActivity {
         colorSkyBlue = findViewById(R.id.colorSkyBlue);
         capImg = findViewById(R.id.captureImg);
         uplImg = findViewById(R.id.uploadImg);
+        noteImage=findViewById(R.id.noteImage);
 
         // Set up the capture image button
         capImg.setOnClickListener(new View.OnClickListener() {
@@ -161,6 +168,45 @@ public class AddNote extends AppCompatActivity {
             noteDescription.setBackgroundResource(R.color.yellow);
         }
 
+        if(getIntent().hasExtra("editNote")){
+            editNote=(Note) getIntent().getSerializableExtra("editNote");
+            setEditMode();
+        } else{
+            //something else
+        }
+
+    }
+    private void setEditMode(){
+
+        isEditMode=true;
+        // Populate UI fields with existing note data for editing.
+        noteTitle.setText(editNote.getTitle());
+        noteDescription.setText(editNote.getContent());
+
+        // Load and display the image if it exists
+        if(editNote.getImageByteArray()!=null){
+            Bitmap imageBitmap= BitmapFactory.decodeByteArray(editNote.getImageByteArray(), 0, editNote.getImageByteArray().length);
+            noteImage.setImageBitmap(imageBitmap);
+        }
+
+
+        // Enable editing for title and description fields.
+        noteTitle.setEnabled(true);
+        noteDescription.setEnabled(true);
+
+        // Set the toolbar title to indicate edit mode.
+        getSupportActionBar().setTitle("Edit Note");
+        selectColor= editNote.getColor();
+        if (selectColor.equalsIgnoreCase("orange")) {
+            noteTitle.setBackgroundResource(R.color.orange);
+            noteDescription.setBackgroundResource(R.color.orange);
+        } else if (selectColor.equalsIgnoreCase("yellow")) {
+            noteTitle.setBackgroundResource(R.color.yellow);
+            noteDescription.setBackgroundResource(R.color.yellow);
+        } else if (selectColor.equalsIgnoreCase("skyBlue")) {
+            noteTitle.setBackgroundResource(R.color.skyBlue);
+            noteDescription.setBackgroundResource(R.color.skyBlue);
+        }
     }
 
     // Utility method to get the color resource based on selected chip
@@ -194,22 +240,111 @@ public class AddNote extends AppCompatActivity {
         return true;
     }
 
+    private boolean isEditMode = false;
+
     // Handle actions when a menu item is selected
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        //TODO: IF THE NOTE IS IN AN EDIT STATE AND USER PRESSES THE DELETE BUTTON THEN DELETE THE NOTE AS WELL (NOT HARD)
         if (item.getItemId() == R.id.delete) {
-            Toast.makeText(this, "Note Was Not Saved.", Toast.LENGTH_SHORT).show();
-            goToMain();
+            if(isEditMode){
+                deleteExistingNote();
+            }else {
+                Toast.makeText(this, "Note Was Not Saved.", Toast.LENGTH_SHORT).show();
+                goToMain();
+            }
         } else if (item.getItemId() == R.id.save) {
-            // Save the note to the database
-            Note note = new Note(noteTitle.getText().toString(), noteDescription.getText().toString(), todaysDate, currentTime, selectColor);
-            NoteDatabase db = new NoteDatabase(this);
-            db.addNote(note);
-            Toast.makeText(this, "Note Has Been Saved.", Toast.LENGTH_SHORT).show();
-            goToMain();
+            if(isEditMode){
+                updateExistingNote();
+            }else{
+                saveNewNote();
+            }
+//            // Save the note to the database
+//            Note note = new Note(noteTitle.getText().toString(), noteDescription.getText().toString(), todaysDate, currentTime, selectColor);
+//            NoteDatabase db = new NoteDatabase(this);
+//            db.addNote(note);
+//            Toast.makeText(this, "Note Has Been Saved.", Toast.LENGTH_SHORT).show();
+//            goToMain();
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private void updateExistingNote(){
+        if(editNote!=null){
+            // Update the existing note's details
+            editNote.setTitle(noteTitle.getText().toString());
+            editNote.setContent(noteDescription.getText().toString());
+            editNote.setColor(selectColor);
+
+            // Update the existing note in the database
+            NoteDatabase db = new NoteDatabase(this);
+            db.updateNote(editNote);
+
+            // Indicate that you've left edit mode
+            isEditMode = false;
+
+            // Notify the user that the note has been updated
+            Toast.makeText(this, "Note Has Been Updated.", Toast.LENGTH_SHORT).show();
+
+            // Return to the main activity
+            goToMain();
+        }
+    }
+
+    private void deleteExistingNote() {
+        if (editNote != null) {
+            // Delete the existing note from the database
+            NoteDatabase db = new NoteDatabase(this);
+            db.deleteNote(editNote);
+
+            // Indicate that you've left edit mode
+            isEditMode = false;
+
+            // Notify the user that the note has been deleted
+            Toast.makeText(this, "Note Has Been Deleted.", Toast.LENGTH_SHORT).show();
+
+            // Return to the main activity
+            goToMain();
+        }
+    }
+
+    private void saveNewNote() {
+        byte[] imageByteArray = null; // Declare imageByteArray before the if statement
+
+        // Create a new note and save it to the database
+        if (noteImage.getDrawable() != null && noteImage.getDrawable() instanceof BitmapDrawable) {
+            Bitmap imageBitmap = ((BitmapDrawable) noteImage.getDrawable()).getBitmap();
+
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+            if (imageBitmap != null) {
+                Log.d("NoteMe", "ImageBitmap size before compression: " + imageBitmap.getByteCount());
+                imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                Log.d("NoteMe", "ImageBitmap size after compression: " + stream.size());
+
+                // Convert the bitmap to a byte array
+                imageByteArray = stream.toByteArray(); // Assign a value to imageByteArray
+            } else {
+                Log.e("NoteMe", "ImageBitmap is null");
+            }
+        }
+
+        // Create a new note with or without the imageByteArray
+        Note note = new Note(noteTitle.getText().toString(), noteDescription.getText().toString(), todaysDate, currentTime, selectColor, imageByteArray);
+        NoteDatabase db = new NoteDatabase(this);
+        db.addNote(note);
+
+        // Notify the user that the new note has been saved
+        Toast.makeText(this, "Note Has Been Saved.", Toast.LENGTH_SHORT).show();
+
+        // Return to the main activity
+        goToMain();
+    }
+
+
+
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -219,21 +354,38 @@ public class AddNote extends AppCompatActivity {
         if (resultCode == RESULT_OK) {
             // Handle result based on request code
             if (requestCode == CAPTURE_IMAGE) {
-                // Get the captured image as a bitmap from the Intent data
-                Bundle extras = data.getExtras();
-                Bitmap imageBitmap = (Bitmap) extras.get("data");
+                if (data != null && data.getExtras() != null) {
+                    // Get the captured image as a bitmap from the Intent data
+                    Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
 
-                // Set the captured image to the ImageView
-                ((ImageView) findViewById(R.id.noteImage)).setImageBitmap(imageBitmap);
-            } else if (requestCode == SELECT_IMAGE) {
+                    // Set the captured image to the ImageView
+                    if (imageBitmap != null) {
+                        noteImage.setImageBitmap(imageBitmap); // Set the image to the ImageView
+                    } else {
+                        Log.e("NoteMe", "Captured image bitmap is null");
+                    }
+                } else {
+                    Log.e("NoteMe", "Captured image data is null");
+                }
+            }
+            else if (requestCode == SELECT_IMAGE) {
                 // Get the URI of the selected image from the Intent data
                 Uri selectedImage = data.getData();
 
-                // Set the selected image to the ImageView
-                ((ImageView) findViewById(R.id.noteImage)).setImageURI(selectedImage);
+                try {
+                    // Decode the URI into a bitmap
+                    Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+
+                    // Set the selected image to the ImageView
+                    noteImage.setImageBitmap(imageBitmap); // Set the image to the ImageView
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
+
+
 
     // Utility method to navigate to the main activity
     private void goToMain() {
